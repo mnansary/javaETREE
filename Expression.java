@@ -2,13 +2,30 @@ import java.util.*;
 
 public class Expression extends ExpressionTree {
    
-   
-   public String fullyParenthesised() {
-      // add implementation here
-      
-      return "";
-   }
+    public String eqn;
 
+    public String fullyParenthesised() {
+        // add implementation here
+        ArrayList<String> ans = new ArrayList<String>();
+        parentasize(this.root, ans);
+        String answer = new String();
+        for (String b:ans) answer += b + " ";
+        this.eqn=answer;
+        return answer.replace(" ", "");
+   }
+   private void parentasize(Node<String> r, ArrayList<String> ans) {
+       String root = r.getData();
+       Iterator<? extends Node<String>> i = r.children();
+       if(!i.hasNext()){
+           ans.add(root);
+           return;
+       }
+           ans.add("(");
+           parentasize(i.next(), ans);
+           ans.add(root);
+           parentasize(i.next(), ans);
+           ans.add(")");
+   }
    public Expression(String s) {
         super();
         // add implementation here
@@ -16,15 +33,17 @@ public class Expression extends ExpressionTree {
         List<String> exp_postFix= new ArrayList<>();  
         exp_infix=createInFix(s);
         exp_postFix=createPostFix(exp_infix);
-        System.out.println(exp_postFix);
-        
-
-      
+        root=constructTree(exp_postFix);
+         
    }
-   public double evaluate() {
-      // add implementation here
-      return 0.0;
-   }
+    public double evaluate() {
+        List<String> exp_infix= new ArrayList<>(); 
+        List<String> exp_postFix= new ArrayList<>();  
+        exp_infix=createInFix(this.eqn);
+        exp_postFix=createPostFix(exp_infix);
+        double answer= evaluatePostfix(exp_postFix);
+        return answer;
+    }
    // string to infix
     private List<String> createInFix(String expression){
     
@@ -72,13 +91,13 @@ public class Expression extends ExpressionTree {
             }
             else if (variable.equals("(")){
                 stack.add(variable);
-                System.out.println(stack);
+                //System.out.println(stack);
             }
             // If the scanned character is an ‘)’, pop and output from the stack
             // until an ‘(‘ is encountered.
             else if (variable.equals(")")) {
                 for (int k = stack.size()-1;k>=0;k--) {
-                    System.out.println("IN ):"+ stack);
+                    //System.out.println("IN ):"+ stack);
                     String var=stack.get(k);
                     if (var.equals("(")){
                         stack.remove(k);
@@ -89,7 +108,7 @@ public class Expression extends ExpressionTree {
                         stack.remove(k);
                     }
                 } 
-                System.out.println("After ):"+ stack);
+                //System.out.println("After ):"+ stack);
             }
             else {
                 for(int j=stack.size()-1;j>=0;j--){ 
@@ -102,7 +121,7 @@ public class Expression extends ExpressionTree {
                     }    
                 } 
                 stack.add(variable);
-                System.out.println("After OPS:"+stack);
+                //System.out.println("After OPS:"+stack);
             }   
         }
         //After the input is over, keep popping and appending to the output until the stack is empty.
@@ -137,6 +156,87 @@ public class Expression extends ExpressionTree {
         return -1;
         
     }
+    //
+    private BNode<String> constructTree(List<String> postfix) { 
+        Stack<BNode<String>> st = new Stack<>(); 
+        BNode<String> t, t1, t2; 
+  
+        // Traverse through every character of 
+        // input expression 
+        for (int i = 0; i < postfix.size(); i++) { 
+            String variable=postfix.get(i);
+            // If operand, simply push into stack 
+            if (isOprand(variable)) { 
+                t = new BNode<String>(variable,null,null,null); 
+                st.push(t); 
+            } 
+            else // operator 
+            { 
+                t = new BNode<String>(variable,null,null,null); 
+  
+                // Pop two top nodes 
+                // Store top 
+                t1 = st.pop();      // Remove top 
+                t2 = st.pop(); 
+  
+                //  make them children 
+                t.right = t1; 
+                t.left = t2; 
+  
+                st.push(t); 
+            } 
+        } 
+  
+        //  only element will be root of expression 
+        // tree 
+        t = st.peek(); 
+        st.pop(); 
+  
+        return t; 
+    } 
+    //
+    private double evaluatePostfix(List<String> postfix) 
+    { 
+        //create a stack 
+        Stack<Float> stack=new Stack<>(); 
+          
+        // Scan all characters one by one 
+        for(int i=0;i<postfix.size();i++) 
+        { 
+            String variable = postfix.get(i); 
+              
+            if(isOprand(variable)) 
+                stack.push(Float.parseFloat(variable)); 
+              
+            //  If the scanned character is an operator, pop two 
+            // elements from stack apply the operator 
+            else
+            { 
+                float val1 = stack.pop(); 
+                float val2 = stack.pop(); 
+                  
+                switch(variable) 
+                { 
+                    case "+": 
+                        stack.push(val2+val1); 
+                        break; 
+                      
+                    case "-": 
+                        stack.push(val2- val1); 
+                        break; 
+                      
+                    case "/": 
+                        stack.push(val2/val1); 
+                        break; 
+                      
+                    case "*": 
+                        stack.push(val2*val1); 
+                        break; 
+                } 
+            } 
+        } 
+        return stack.pop();     
+    } 
 
     
 }
